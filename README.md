@@ -72,5 +72,3 @@ In the flights folder the methods are:
 * [PassKit Boarding Passes Official Documentation](https://docs.passkit.io/protocols/boarding)
 * [PassKit Events Official Documentation](https://docs.passkit.io/protocols/event-tickets/)
 
-
-
