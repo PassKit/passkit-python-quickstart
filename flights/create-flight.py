@@ -1,20 +1,32 @@
 import grpc
-import io.flights.flight_pb2 as flight_pb2
-import io.flights.a_rpc_pb2_grpc as a_rpc_pb2_grpc
-import io.core.a_rpc_templates_pb2_grpc as a_rpc_templates_pb2_grpc
-import io.common.template_pb2 as template_pb2
+import passkit_io.flights.flight_pb2 as flight_pb2
+import passkit_io.flights.a_rpc_pb2_grpc as a_rpc_pb2_grpc
+import passkit_io.core.a_rpc_templates_pb2_grpc as a_rpc_templates_pb2_grpc
+import passkit_io.common.template_pb2 as template_pb2
 import google.protobuf.timestamp_pb2 as timestamp_pb2
 import datetime
 
 
 def create_flight():
-    # Create channel credentials
-    credentials = grpc.ssl_channel_credentials(
-        root_certificates='certs/certificate.pem', private_key_file='certs/key.pem', certificate_chain_file='certs/ca-chain.pem')
+ # Read the CA, certificate, and private key files
+    with open('../certs/ca-chain.pem', 'rb') as ca_file:
+        root_certificates = ca_file.read()
 
-    # Create a secure channel
-    channel = grpc.secure_channel(
-        'grpc.pub1.passkit.io' + ':' + '443', credentials)
+    with open('../certs/certificate.pem', 'rb') as cert_file:
+        certificate_chain = cert_file.read()
+
+    with open('../certs/key.pem', 'rb') as key_file:
+        private_key = key_file.read()
+
+    # Create SSL credentials for gRPC
+    credentials = grpc.ssl_channel_credentials(
+        root_certificates=root_certificates,
+        private_key=private_key,
+        certificate_chain=certificate_chain
+    )
+
+    # Create a secure gRPC channel
+    channel = grpc.secure_channel('grpc.pub1.passkit.io:443', credentials)
 
     # Create a stub
     flightsStub = a_rpc_pb2_grpc.FlightsStub(channel)
@@ -24,31 +36,35 @@ def create_flight():
 
     # Create template
     templateRequest = template_pb2.DefaultTemplateRequest()
-    templateRequest.Protocol = "FLIGHT_PROTOCOL"
-    templateRequest.Revision = 1
+    templateRequest.protocol = "FLIGHT_PROTOCOL"
+    templateRequest.revision = 1
 
     template = templatesStub.getDefaultTemplate(templateRequest)
 
-    template.Name = "ABC Flight Ticket"
-    template.Description = "Quickstart Flights"
-    template.Timezone = "Europe/London"
+    template.name = "ABC Flight Ticket"
+    template.description = "Quickstart Flights"
+    template.timezone = "Europe/London"
 
     # Make a note of the id for creating the flight designator
-    templateId = templatesStub.createTemplate(template)
+    try:
+        response = templatesStub.createTemplate(template)
+        print("Template " + response.id + " successfully created")
+    except grpc.RpcError as e:
+        print("Failed to create template", e.details())
+
 
     # Create flight
     flight = flight_pb2.Flight()
-    flight.CarrierCode = ""
-    flight.FlightNumber = "1234"
-    flight.BoardingPoint = "ATH"
-    flight.DeplaningPoint = "TLV"
+    flight.carrierCode = ""
+    flight.flightNumber = "1234"
+    flight.boardingPoint = "ATH"
+    flight.deplaningPoint = "TLV"
 
-    departureDate = datetime.datetime.strptime(
-        "10/9/2023", "%d/%m/%Y").timestamp()
+    departureDate = datetime.datetime.now(datetime.timezone.utc)
     departureTime = datetime.time(13, 0, 0)
-    flight.DepartureDate = departureDate
-    flight.ScheduledDepartureTime = departureTime
-    flight.PassTemplateId = templateId.Id
+    flight.departureDate = departureDate
+    flight.scheduledDepartureTime = departureTime
+    flight.passTemplateId = response.id
 
     response = flightsStub.createFlight(flight)
     print(response)

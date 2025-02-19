@@ -1,28 +1,43 @@
 import grpc
-import io.member.member_pb2 as member_pb2
-import io.member.a_rpc_pb2_grpc as a_rpc_pb2_grpc
+import passkit_io.member.member_pb2 as member_pb2
+import passkit_io.member.a_rpc_pb2_grpc as a_rpc_pb2_grpc
 
 
 def earn_points():
-    # Create channel credentials
+ # Read the CA, certificate, and private key files
+    with open('../certs/ca-chain.pem', 'rb') as ca_file:
+        root_certificates = ca_file.read()
+
+    with open('../certs/certificate.pem', 'rb') as cert_file:
+        certificate_chain = cert_file.read()
+
+    with open('../certs/key.pem', 'rb') as key_file:
+        private_key = key_file.read()
+
+    # Create SSL credentials for gRPC
     credentials = grpc.ssl_channel_credentials(
-        root_certificates='certs/certificate.pem', private_key_file='certs/key.pem', certificate_chain_file='certs/ca-chain.pem')
+        root_certificates=root_certificates,
+        private_key=private_key,
+        certificate_chain=certificate_chain
+    )
 
-    # Create a secure channel
-    channel = grpc.secure_channel(
-        'grpc.pub1.passkit.io' + ':' + '443', credentials)
+    # Create a secure gRPC channel
+    channel = grpc.secure_channel('grpc.pub1.passkit.io:443', credentials)
 
-    # Create members stub
+    # Access the MembersStub 
     membersStub = a_rpc_pb2_grpc.MembersStub(channel)
 
     # Earn Points
     earnPointsRequest = member_pb2.EarnBurnPointsRequest()
-    earnPointsRequest.Id = ""  # Id of member of points to be increased
-    earnPointsRequest.Points = 100
-    earnPointsRequest.SecondaryPoints = 0
-    earnPointsRequest.TierPoints = 0
-    response = membersStub.earnPoints(earnPointsRequest)
-    print(response)
+    earnPointsRequest.id = "41Nq6AvJQzDNtMJgliwB4c"  # Id of member of points to earn points
+    earnPointsRequest.points = 100
+    earnPointsRequest.secondaryPoints = 0
+    earnPointsRequest.tierPoints = 0
+    try:
+        response = membersStub.earnPoints(earnPointsRequest)
+        print("Member " + response.id + " has earned " + str(earnPointsRequest.points))
+    except grpc.RpcError as e:
+        print("Failed to earn points", e.details())
 
 
 earn_points()
