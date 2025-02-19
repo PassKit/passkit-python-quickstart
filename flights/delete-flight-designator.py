@@ -1,26 +1,38 @@
 import grpc
-import io.flights.flight_designator_pb2 as flight_designator_pb2
-import io.flights.a_rpc_pb2_grpc as a_rpc_pb2_grpc
+import passkit_io.flights.flight_designator_pb2 as flight_designator_pb2
+import passkit_io.flights.a_rpc_pb2_grpc as a_rpc_pb2_grpc
 import datetime
 
 
 def delete_flight_designator():
-    # Create channel credentials
-    credentials = grpc.ssl_channel_credentials(
-        root_certificates='certs/certificate.pem', private_key_file='certs/key.pem', certificate_chain_file='certs/ca-chain.pem')
+ # Read the CA, certificate, and private key files
+    with open('../certs/ca-chain.pem', 'rb') as ca_file:
+        root_certificates = ca_file.read()
 
-    # Create a secure channel
-    channel = grpc.secure_channel(
-        'grpc.pub1.passkit.io' + ':' + '443', credentials)
+    with open('../certs/certificate.pem', 'rb') as cert_file:
+        certificate_chain = cert_file.read()
+
+    with open('../certs/key.pem', 'rb') as key_file:
+        private_key = key_file.read()
+
+    # Create SSL credentials for gRPC
+    credentials = grpc.ssl_channel_credentials(
+        root_certificates=root_certificates,
+        private_key=private_key,
+        certificate_chain=certificate_chain
+    )
+
+    # Create a secure gRPC channel
+    channel = grpc.secure_channel('grpc.pub1.passkit.io:443', credentials)
 
     # Create a stub
     flightsStub = a_rpc_pb2_grpc.FlightsStub(channel)
 
     # Delete flight designator
     flightDesignator = flight_designator_pb2.FlightDesignator()
-    flightDesignator.CarrierCode = ""
-    flightDesignator.FlightNumber = "1234"
-    flightDesignator.Revision = 0
+    flightDesignator.carrierCode = ""
+    flightDesignator.flightNumber = "1234"
+    flightDesignator.revision = 0
 
     response = flightsStub.deleteFlightDesignator(flightDesignator)
     print(response)

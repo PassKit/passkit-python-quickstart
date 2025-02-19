@@ -1,28 +1,44 @@
 import grpc
-import io.member.member_pb2 as member_pb2
-import io.member.a_rpc_pb2_grpc as a_rpc_pb2_grpc
+import passkit_io.member.member_pb2 as member_pb2
+import passkit_io.member.a_rpc_pb2_grpc as a_rpc_pb2_grpc
 
 
 def burn_points():
-    # Create channel credentials
+ # Read the CA, certificate, and private key files
+    with open('../certs/ca-chain.pem', 'rb') as ca_file:
+        root_certificates = ca_file.read()
+
+    with open('../certs/certificate.pem', 'rb') as cert_file:
+        certificate_chain = cert_file.read()
+
+    with open('../certs/key.pem', 'rb') as key_file:
+        private_key = key_file.read()
+
+    # Create SSL credentials for gRPC
     credentials = grpc.ssl_channel_credentials(
-        root_certificates='certs/certificate.pem', private_key_file='certs/key.pem', certificate_chain_file='certs/ca-chain.pem')
+        root_certificates=root_certificates,
+        private_key=private_key,
+        certificate_chain=certificate_chain
+    )
 
-    # Create a secure channel
-    channel = grpc.secure_channel(
-        'grpc.pub1.passkit.io' + ':' + '443', credentials)
+    # Create a secure gRPC channel
+    channel = grpc.secure_channel('grpc.pub1.passkit.io:443', credentials)
 
-    # Create members stub
+    # Access the MembersStub 
     membersStub = a_rpc_pb2_grpc.MembersStub(channel)
 
     # Burn Points
     burnPointsRequest = member_pb2.EarnBurnPointsRequest()
-    burnPointsRequest.Id = ""  # Id of member of points to burn
-    burnPointsRequest.Points = 100
-    burnPointsRequest.SecondaryPoints = 0
-    burnPointsRequest.TierPoints = 0
-    response = membersStub.burnPoints(burnPointsRequest)
-    print(response)
+    burnPointsRequest.id = ""  # Id of member of points to burn
+    burnPointsRequest.points = 100
+    burnPointsRequest.secondaryPoints = 0
+    burnPointsRequest.tierPoints = 0
+    try:
+        response = membersStub.burnPoints(burnPointsRequest)
+        print("Member " + response.id + " has burned " + str(burnPointsRequest.points))
+    except grpc.RpcError as e:
+        print("Failed to burn points", e.details())
+
 
 
 burn_points()

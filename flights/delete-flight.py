@@ -1,6 +1,6 @@
 import grpc
-import io.flights.flight_pb2 as flight_pb2
-import io.flights.a_rpc_pb2_grpc as a_rpc_pb2_grpc
+import passkit_io.flights.flight_pb2 as flight_pb2
+import passkit_io.flights.a_rpc_pb2_grpc as a_rpc_pb2_grpc
 import datetime
 
 
@@ -18,16 +18,15 @@ def delete_flight():
 
     # Delete flight
     flight = flight_pb2.Flight()
-    flight.CarrierCode = ""
-    flight.FlightNumber = "1234"
-    flight.BoardingPoint = "ATH"
-    flight.DeplaningPoint = "TLV"
+    flight.carrierCode = ""
+    flight.flightNumber = "1234"
+    flight.boardingPoint = "ATH"
+    flight.deplaningPoint = "TLV"
 
-    departureDate = datetime.datetime.strptime(
-        "10/9/2023", "%d/%m/%Y").timestamp()
+    departureDate = datetime.datetime.now(datetime.timezone.utc)
     departureTime = datetime.time(13, 0, 0)
-    flight.DepartureDate = departureDate
-    flight.ScheduledDepartureTime = departureTime
+    flight.departureDate = departureDate
+    flight.scheduledDepartureTime = departureTime
 
     response = flightsStub.deleteFlight(flight)
     print(response)

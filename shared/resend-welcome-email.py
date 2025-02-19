@@ -1,9 +1,9 @@
 import grpc
-import passkit_io.member.member_pb2 as member_pb2
-import passkit_io.member.a_rpc_pb2_grpc as a_rpc_pb2_grpc
+import passkit_io.core.a_rpc_distribution_pb2_grpc as distribution_pb2_grpc
+import passkit_io.common.distribution_pb2 as distribution_pb2
 
 
-def delete_member():
+def resend_welcome_email():
  # Read the CA, certificate, and private key files
     with open('../certs/ca-chain.pem', 'rb') as ca_file:
         root_certificates = ca_file.read()
@@ -24,16 +24,17 @@ def delete_member():
     # Create a secure gRPC channel
     channel = grpc.secure_channel('grpc.pub1.passkit.io:443', credentials)
 
-    # Access the MembersStub 
-    membersStub = a_rpc_pb2_grpc.MembersStub(channel)
+    # Access the distributionStub from passkit_io.member
+    distributionStub = distribution_pb2_grpc.DistributionStub(channel)
 
-    # Delete member
-    member = member_pb2.Member()
-    member.id = "7KrZB9i90py1ExNjRQ5P0H"  # Id of member to delete
+    emailRequest = distribution_pb2.EmailDistributionRequest()
+    emailRequest.id = ""
+    emailRequest.protocol = "MEMBERSHIP"
+
     try:
-        membersStub.deleteMember(member)
-        print("Member has been deleted")
+        response = distributionStub.sendWelcomeEmail(emailRequest)
+        print("Resent welcome email" )
     except grpc.RpcError as e:
-        print("Failed to delete member", e.details())
+        print("Failed to resend welcome email", e.details())
 
-delete_member()
+resend_welcome_email()
