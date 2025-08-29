@@ -1,44 +1,58 @@
+# shared/grpcConnection.py
+from dataclasses import dataclass
+from typing import Tuple
 import grpc
-import passkit_io.member.a_rpc_pb2_grpc as a_rpc_pb2_grpc
-import passkit_io.single_use_coupons.a_rpc_pb2_grpc as coupons_a_rpc_pb2_grpc
-import passkit_io.core.a_rpc_templates_pb2_grpc as a_rpc_templates_pb2_grpc
-import passkit_io.event_tickets.a_rpc_pb2_grpc as events_a_rpc_pb2_grpc
-import passkit_io.flights.a_rpc_pb2_grpc as flights_a_rpc_pb2_grpc
+import constants
+
+from passkit.io.member import a_rpc_pb2_grpc as member_grpc
+from passkit.io.single_use_coupons import a_rpc_pb2_grpc as coupons_grpc
+from passkit.io.core import a_rpc_templates_pb2_grpc as templates_grpc
+from passkit.io.event_tickets import a_rpc_pb2_grpc as events_grpc
+from passkit.io.flights import a_rpc_pb2_grpc as flights_grpc
 
 
-def grpcConnection(): 
-# Read the CA, certificate, and private key files
-    with open('../certs/ca-chain.pem', 'rb') as ca_file:
-        root_certificates = ca_file.read()
+@dataclass
+class Stubs:
+    members: member_grpc.MembersStub
+    coupons: coupons_grpc.SingleUseCouponsStub
+    events: events_grpc.EventTicketsStub
+    flights: flights_grpc.FlightsStub
+    templates: templates_grpc.TemplatesStub
 
-    with open('../certs/certificate.pem', 'rb') as cert_file:
-        certificate_chain = cert_file.read()
-    with open('../certs/key.pem', 'rb') as key_file:
-        private_key = key_file.read()
 
-    # Create SSL credentials for gRPC
-    credentials = grpc.ssl_channel_credentials(
-        root_certificates=root_certificates,
-        private_key=private_key,
-        certificate_chain=certificate_chain
+def _load_certs() -> Tuple[bytes, bytes, bytes]:
+    with open(constants.CA_FILE, "rb") as f:
+        ca = f.read()
+    with open(constants.CERT_FILE, "rb") as f:
+        cert = f.read()
+    with open(constants.KEY_FILE, "rb") as f:
+        key = f.read()
+    return ca, cert, key
+
+
+def create_channel() -> grpc.Channel:
+    ca, cert, key = _load_certs()
+    creds = grpc.ssl_channel_credentials(
+        root_certificates=ca,
+        private_key=key,
+        certificate_chain=cert,
+    )
+    # Optional channel options (keepalive etc.) can go here if needed
+    return grpc.secure_channel(constants.GRPC_HOST, creds)
+
+
+def create_stubs(channel: grpc.Channel) -> Stubs:
+    """Build all commonly used stubs for a given channel."""
+    return Stubs(
+        members=member_grpc.MembersStub(channel),
+        coupons=coupons_grpc.SingleUseCouponsStub(channel),
+        events=events_grpc.EventTicketsStub(channel),
+        flights=flights_grpc.FlightsStub(channel),
+        templates=templates_grpc.TemplatesStub(channel),
     )
 
-    # Create a secure gRPC channel
-    channel = grpc.secure_channel('grpc.pub1.passkit.io:443', credentials)
 
-    # Membership Stub 
-    membersStub = a_rpc_pb2_grpc.MembersStub(channel)
-
-    # Coupons Stub
-    couponsStub = coupons_a_rpc_pb2_grpc.SingleUseCouponsStub(channel)
-
-    # Events Stub
-    eventStub = events_a_rpc_pb2_grpc.EventTicketsStub(channel)
-
-    # Flights Stub
-    flightStub = flights_a_rpc_pb2_grpc.FlightsStub(channel)
-
-    # Create templates stub
-    templatesStub = a_rpc_templates_pb2_grpc.TemplatesStub(channel)
-
-    grpcConnection()
+def connect() -> Tuple[grpc.Channel, Stubs]:
+    """Return a secure channel and all service stubs (single-channel workflow)."""
+    channel = create_channel()
+    return channel, create_stubs(channel)
