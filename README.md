@@ -18,6 +18,18 @@ You will need the following:
 - Gradle Build Tool from https://gradle.org/install/ with guide on how to install
 - Apple wallet certificate id (for flights only, https://app.passkit.com/app/account/certificates)
  ![ScreenShot](images/certificate.png)
+ - The following Python packages:
+  - `passkit-python-grpc-sdk`
+  - `protobuf>=5.26`
+  - `grpcio>=1.60`
+  - `grpcio-tools>=1.60`
+  - `protoc-gen-openapiv2`
+  - `googleapis-common-protos`
+
+You can install all required Python packages with:
+
+`pip install passkit-python-grpc-sdk "protobuf>=5.26" "grpcio>=1.60" "grpcio-tools>=1.60" protoc-gen-openapiv2 googleapis-common-protos`
+ 
 
 ### Configuration
 
@@ -27,7 +39,7 @@ You will need the following:
     - key.pem
     
     You can disregard the key-java.pem credentials file as it is not compatible with Python.
-2. Use `pip install passkit-python-grpc-sdk` to download the latest sdk from python.
+2. Use `pip install passkit-python-grpc-sdk` to download the latest sdk from python or use `pip install passkit-python-grpc-sdk --upgrade` to upgrade to the latest.
     
 ###  Membership Cards
 In the membership folder the methods there are:
@@ -41,6 +53,8 @@ In the membership folder the methods there are:
 - burn-points.py - takes a programId of an existing program and memberId of existing member to use points from a chosen member
 - delete-member.py - takes programId, tierId, memberId and memberDetails, deletes an existing member record
 
+Run individually using `python3 -m membership.chosenMethod`
+
 ###  Coupons
 In the coupons folder the methods are:
 - create-campaign.py - takes a new campaign name and creates a new campaign
@@ -50,6 +64,8 @@ In the coupons folder the methods are:
 - update-coupon.py - takes a campaignId of an existing campaign and couponId of existing coupon to update that coupon
 - redeem-coupon.py - takes a campaignId of an existing campaign and couponId of existing coupon to redeem that coupon
 - void-coupon.py - takes the couponId, offerId and campaignId to void an existing coupon
+
+Run individually using `python3 -m coupons.chosenMethod`
 
 ### Boarding Passes
 #### Issue A Boarding Pass.
@@ -64,6 +80,10 @@ In the flights folder the methods are:
 - delete-flight-designator.py - takes an existing flight designation and deletes the flight designator associated with it
 - delete-airports.py - takes an existing airport code and deletes the airport associated with it
 - delete-carrier.py - takes an existing carrier code and deletes the carrier associated with it
+
+Run individually using `python3 -m flights.chosenMethod`
+
+To run all methods use `python3 quickstart-all.py`
 
 
 ## Documentation
