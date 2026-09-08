@@ -103,6 +103,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -128,4 +130,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-./certs
+certs/
+.DS_Store
+.idea/
+.vscode/
+.ruff_cache/
