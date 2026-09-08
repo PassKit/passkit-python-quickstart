@@ -1,5 +1,7 @@
 """Reusable, focused examples for the PassKit Event Tickets API."""
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta, timezone
 
 import grpc

@@ -1,4 +1,6 @@
 # membership/updateMember.py
+from __future__ import annotations
+
 import grpc
 from passkit.io.member import a_rpc_pb2_grpc as member_grpc, member_pb2
 from passkit.io.common import personal_pb2
