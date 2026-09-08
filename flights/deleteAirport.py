@@ -1,4 +1,6 @@
 # flights/deleteAirport.py
+from __future__ import annotations
+
 import grpc
 from passkit.io.flights import a_rpc_pb2_grpc as flights_grpc, airport_pb2
 

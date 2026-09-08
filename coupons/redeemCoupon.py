@@ -1,4 +1,6 @@
 # coupons/redeemCoupon.py
+from __future__ import annotations
+
 import grpc
 from passkit.io.single_use_coupons import a_rpc_pb2_grpc as coupons_grpc, coupon_pb2
 

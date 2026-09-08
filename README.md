@@ -1,94 +1,247 @@
-PassKit Python Quickstart
-=======================
+# PassKit Python Quickstart
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://badge.fury.io/py/passkit-python-grpc-sdk.svg)](https://pypi.org/project/passkit-python-grpc-sdk/)
+[![CI](https://github.com/PassKit/passkit-python-quickstart/actions/workflows/ci.yml/badge.svg)](https://github.com/PassKit/passkit-python-quickstart/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/passkit-python-grpc-sdk.svg)](https://pypi.org/project/passkit-python-grpc-sdk/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-### Overview
+Create a working PassKit membership card, coupon, event ticket, or flight
+boarding pass with the official Python SDK. Each guided example runs with one
+command, prints the resulting wallet pass URL, and removes the test resources
+it created.
 
-This quickstart aims to help  get Python developers up and running with the PassKit SDK as quickly as possible.
+## Quick start
 
-### Prerequisites
+You need Python 3.9 or newer, a free
+[PassKit account](https://app.passkit.com/signup), and PassKit SDK credentials.
 
-You will need the following:
+### 1. Download and install
 
-- A PassKit account (signup for free at https://app.passkit.com)
-- Your PassKit SDK Credentials (available from the https://app.passkit.com/app/account/developer-tools)
-- Python 3.7 or above from https://www.oracle.com/java/technologies/downloads/ (https://docs.oracle.com/en/java/javase/18/install/overview-jdk-installation.html - guide on how to download)
-- Gradle Build Tool from https://gradle.org/install/ with guide on how to install
-- Apple wallet certificate id (for flights only, https://app.passkit.com/app/account/certificates)
- ![ScreenShot](images/certificate.png)
- - The following Python packages:
-  - `passkit-python-grpc-sdk`
-  - `protobuf>=5.26`
-  - `grpcio>=1.60`
-  - `grpcio-tools>=1.60`
-  - `protoc-gen-openapiv2`
-  - `googleapis-common-protos`
+```bash
+git clone https://github.com/PassKit/passkit-python-quickstart.git
+cd passkit-python-quickstart
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
 
-You can install all required Python packages with:
+On Windows PowerShell, activate the environment with:
 
-`pip install passkit-python-grpc-sdk "protobuf>=5.26" "grpcio>=1.60" "grpcio-tools>=1.60" protoc-gen-openapiv2 googleapis-common-protos`
- 
+```powershell
+.venv\Scripts\Activate.ps1
+```
 
-### Configuration
+### 2. Get your PassKit credentials
 
-1. Download or clone this quickstart repository, create a folder `certs` in the resources folder of the repository and add the following three PassKit credential files:
-    - certificate.pem
-    - ca-chain.pem
-    - key.pem
-    
-    You can disregard the key-java.pem credentials file as it is not compatible with Python.
-2. Use `pip install passkit-python-grpc-sdk` to download the latest sdk from python or use `pip install passkit-python-grpc-sdk --upgrade` to upgrade to the latest.
-    
-###  Membership Cards
-In the membership folder the methods there are:
-- create-program.py - takes a new program name and creates a new program
-- create-tier.py -  takes the programId of the program just created in the above program, creates a new template (based of default template), creates a tier, and links this tier to the program
-- enrol-member.py - takes programId and tierId created by the above methods, and memberDetails, creates a new member record, and sends a welcome email to deliver membership card url
-- update-member.py - takes memberId and memberDetails, and updates existing member record
-- check-in-member.py - takes memberId and location details and checks in the selected member
-- check-out-member.py - takes memberId and location details and checks out the selected member
-- earn-points.py - takes a programId of an existing program and memberId of existing member to add points to chosen member
-- burn-points.py - takes a programId of an existing program and memberId of existing member to use points from a chosen member
-- delete-member.py - takes programId, tierId, memberId and memberDetails, deletes an existing member record
+1. Sign in to [PassKit](https://app.passkit.com).
+2. Open **Developer Tools** from the account menu.
+3. Under **Account Credentials**, select **SDK Credentials**.
+4. Choose a strong password when prompted.
+5. Download the three files sent to your registered email address:
 
-Run individually using `python3 -m membership.chosenMethod`
+   - `certificate.pem`
+   - `key.pem`
+   - `ca-chain.pem`
 
-###  Coupons
-In the coupons folder the methods are:
-- create-campaign.py - takes a new campaign name and creates a new campaign
-- create-offer.py - takes a campaignId of the campaign you just created and creates a new template (based of default template), creates an offer, and links this offer to the campaign
-- create-coupon.py - takes campaignId and offerId created by the above methods, and couponDetails, creates a new coupon record, and sends a welcome email to deliver coupon card url
-- list-coupons.py - takes campaignId and returns list of coupon records under that campaign
-- update-coupon.py - takes a campaignId of an existing campaign and couponId of existing coupon to update that coupon
-- redeem-coupon.py - takes a campaignId of an existing campaign and couponId of existing coupon to redeem that coupon
-- void-coupon.py - takes the couponId, offerId and campaignId to void an existing coupon
+The password encrypts your private key; it is not your PassKit account
+password. Generating another credential set invalidates the existing one.
 
-Run individually using `python3 -m coupons.chosenMethod`
+### 3. Configure the quickstart
 
-### Boarding Passes
-#### Issue A Boarding Pass.
-In the flights folder the methods are:
-- create-template.py - creates the pass template for flights and boarding passes
-- create-carrier.py - takes a new carrier code and creates a new carrier
-- create-airport.py - takes a new airport code and creates a new airport.
-- create-flight.py - takes templateId , from previous method, to use as base template and uses a carrier code, created from previous method, and creates a new flight
-- create-flight-designator.py - creates flight designator using flight code
-- create-boarding-pass.py - takes templateId, from previous method, and customer details creates a new boarding pass, and sends a welcome email to deliver boarding pass url
-- delete-flight.py - takes an existing flight number as well as other details and deletes the flight associated with it
-- delete-flight-designator.py - takes an existing flight designation and deletes the flight designator associated with it
-- delete-airports.py - takes an existing airport code and deletes the airport associated with it
-- delete-carrier.py - takes an existing carrier code and deletes the carrier associated with it
+Create `certs/`, copy in all three credential files, and create `.env`:
 
-Run individually using `python3 -m flights.chosenMethod`
+```bash
+mkdir -p certs
+cp /path/to/downloads/certificate.pem certs/
+cp /path/to/downloads/key.pem certs/
+cp /path/to/downloads/ca-chain.pem certs/
+cp .env.example .env
+```
 
-To run all methods use `python3 quickstart-all.py`
+Open `.env` and set `PASSKIT_PASSPHRASE` to the SDK credential password.
+Check **Developer Tools → API Region** and use:
 
+- `grpc.pub1.passkit.io` for Europe
+- `grpc.pub2.passkit.io` for the USA
 
-## Documentation
-* [PassKit Membership Official Documentation](https://docs.passkit.io/protocols/member)
-* [PassKit Coupons Official Documentation](https://docs.passkit.io/protocols/coupon)
-* [PassKit Boarding Passes Official Documentation](https://docs.passkit.io/protocols/boarding)
-* [PassKit Events Official Documentation](https://docs.passkit.io/protocols/event-tickets/)
+The files under `certs/` and your `.env` are ignored by Git. Never commit or
+share them.
 
+### 4. Run an example
+
+```bash
+python main.py membership
+python main.py coupons
+python main.py event-tickets
+python main.py flights
+```
+
+`loyalty` is an alias for `membership`, and `tickets` is an alias for
+`event-tickets`.
+
+A successful run prints output similar to:
+
+```text
+Created resources:
+  bronzePassId: https://pub1.pskt.io/4MEIqDFudziP4ZFKx5osw3
+Cleaning up generated resources...
+```
+
+Open the URL on a phone to add the pass to Apple Wallet or Google Wallet. On a
+desktop, the PassKit page displays a QR code you can scan.
+
+## What each workflow demonstrates
+
+| Workflow | Included operations |
+| --- | --- |
+| Membership | Images, two templates, program and tiers, member enrolment, update, ID and external-ID lookup, check-in/out, earn and burn points, list, count, event history, and cleanup |
+| Coupons | Images, before/after templates, campaign and offers, issue, update, get, list, count, redeem, void, and cleanup |
+| Event tickets | Images, template, production, venue, future-dated event, ticket type, issue, update, lookup by ID/ticket/order number, list, count, validate, redeem, and cleanup |
+| Flights | Images, template, carrier and airport create-or-reuse, future-dated flight and designator, lookup, boarding-pass issue and lookup, and ordered cleanup |
+
+The focused implementations are under `quickstarts/workflows/`. Shared image,
+template, cleanup, configuration, and connection logic is kept under
+`quickstarts/`.
+
+Each product also provides focused reusable calls through its own `methods.py`:
+[`membership`](membership/README.md), [`coupons`](coupons/README.md),
+[`event_tickets`](event_tickets/README.md), and [`flights`](flights/README.md).
+The original individual scripts remain as compatible entry points. The guided
+workflows are self-contained and use the maintained implementations under
+`quickstarts/workflows/`.
+
+## Flights
+
+Flights require an Apple pass certificate uploaded to PassKit. Copy its pass
+type identifier into `.env`:
+
+```dotenv
+PASSKIT_APPLE_CERTIFICATE=pass.com.example.airline
+```
+
+The default `YY` carrier and `YY4`/`ADP` airports are reused if they already
+exist in your account. Reused infrastructure is never deleted. The flight
+number and departure date are generated for each run.
+
+## Keep generated resources
+
+Cleanup runs even if an example fails partway through. To keep the generated
+records for inspection, set:
+
+```dotenv
+PASSKIT_KEEP_ASSETS=true
+```
+
+You must then delete them manually. Return the value to `false` for normal use.
+
+## Configuration reference
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PASSKIT_PASSPHRASE` | Empty | Password required when `key.pem` is encrypted |
+| `PASSKIT_ADDRESS` | `grpc.pub1.passkit.io` | PassKit API region hostname |
+| `PASSKIT_PORT` | `443` | gRPC port |
+| `PASSKIT_ROOT_CERT` | `certs/ca-chain.pem` | PassKit CA chain |
+| `PASSKIT_PRIVATE_KEY` | `certs/key.pem` | SDK private key |
+| `PASSKIT_CERTIFICATE` | `certs/certificate.pem` | SDK client certificate |
+| `PASSKIT_CONNECTION_MODE` | `pool` | `pool` or `single` |
+| `PASSKIT_POOL_SIZE` | `5` | Number of reusable connections |
+| `PASSKIT_KEEP_ASSETS` | `false` | Keep resources created by a run |
+| `PASSKIT_RECIPIENT_EMAIL` | Empty | Optional real recipient email |
+| `PASSKIT_APPLE_CERTIFICATE` | Empty | Apple pass type identifier for flights |
+| `PASSKIT_FLIGHT_CARRIER` | `YY` | Two-character carrier code |
+| `PASSKIT_FLIGHT_ORIGIN` | `YY4` | Origin airport code |
+| `PASSKIT_FLIGHT_DESTINATION` | `ADP` | Destination airport code |
+
+Values already set in your terminal take precedence over `.env`.
+
+## Use the complete SDK API
+
+`quickstarts/api.py` exposes all generated SDK services and methods. Print the
+current operation list without credentials or a network connection:
+
+```bash
+python main.py operations
+```
+
+Create the API with the same reusable connection pool used by the examples:
+
+```python
+from passkit.io.common.common_objects_pb2 import Id
+
+from quickstarts.api import PassKitApi
+from quickstarts.client import ConnectionPool
+from quickstarts.config import Config
+
+config = Config.load()
+config.validate()
+pool = ConnectionPool(config)
+
+try:
+    api = PassKitApi(pool)
+    program = api.members.getProgram(Id(id="YOUR_PROGRAM_ID"))
+    print(program)
+finally:
+    pool.close()
+```
+
+Server-streaming methods return normal Python iterators. Use
+`api.members.collect("listPrograms", request)` when a small result should be
+collected into a list.
+
+Sensitive account, credential, bulk-delete, and bulk-update operations are
+blocked through the facade by default. They require an explicit opt-in:
+
+```python
+api = PassKitApi(pool, allow_destructive=True)
+```
+
+## Tests and project checks
+
+These checks do not connect to PassKit or require credentials:
+
+```bash
+python -m unittest discover -s tests -v
+python -m ruff check .
+python -m ruff format --check .
+```
+
+The live workflows create and delete PassKit resources and require `.env` and
+the three credential files.
+
+## Troubleshooting
+
+### A credential file cannot be found
+
+Confirm all three `.pem` files are under `certs/` and run the command from the
+repository root.
+
+### The private key cannot be decrypted
+
+`PASSKIT_PASSPHRASE` must be the password chosen when generating the SDK
+credentials. It is not your PassKit login password. Replace all three files
+together if you generate a new credential set.
+
+### Authentication or connection fails
+
+Confirm your PassKit API region. Also check whether a firewall or VPN blocks
+outbound HTTPS/gRPC traffic.
+
+### Flights stop before connecting
+
+Upload an Apple pass certificate to PassKit and set
+`PASSKIT_APPLE_CERTIFICATE` to its pass type identifier.
+
+### Resources remain after a failed run
+
+Remove them in the PassKit portal and ensure `PASSKIT_KEEP_ASSETS=false`.
+
+## Documentation and support
+
+- [PassKit API documentation](https://docs.passkit.io/)
+- [PassKit Help Centre](https://help.passkit.com/)
+- [Open an issue](https://github.com/PassKit/passkit-python-quickstart/issues)
+- Email [support@passkit.com](mailto:support@passkit.com)
+
+## Licence
+
+Distributed under the [MIT Licence](LICENSE).

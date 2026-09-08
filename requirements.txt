@@ -1,0 +1,3 @@
+cryptography>=50.0.1,<51
+passkit-python-grpc-sdk==1.1.162
+python-dotenv>=1.1,<2
